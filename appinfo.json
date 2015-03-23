@@ -1,0 +1,33 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        "configurable"
+    ],
+    "companyName": "dreamer8.com",
+    "longName": "SaldoBip",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "characterRegex": "[A-Za-z\u00f3\\.]",
+                "file": "fonts/Roboto-Light.ttf",
+                "name": "FONT_ROBOTO_CONDENSED_LIGHT_20",
+                "type": "font"
+            },
+            {
+                "characterRegex": "[a-z0-9\\$]",
+                "file": "fonts/RobotoCondensed-Bold.ttf",
+                "name": "FONT_ROBOTO_CONDENSED_BOLD_40",
+                "type": "font"
+            }
+        ]
+    },
+    "sdkVersion": "2",
+    "shortName": "SaldoBip",
+    "uuid": "2cfe4632-d68e-405d-9687-98c60becf778",
+    "versionCode": 1,
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}
