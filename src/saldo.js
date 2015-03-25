@@ -7,23 +7,74 @@ var xhrRequest = function (url, type, callback) {
   xhr.send();
 };
 
+var KEY_BIP = 0;
+
+function getSaldo(bip){
+	var url = 'http://default-environment-mn23kbgwjm.elasticbeanstalk.com/api/index.php/saldo/';
+	// Send request to OpenWeatherMap
+	xhrRequest(url+bip, 'GET', function(responseText) {
+		var json = JSON.parse(responseText);
+		var dictionary = {};
+		if(json.saldo !== undefined){
+			dictionary.KEY_ERROR = 0;
+			dictionary.KEY_SALDO = json.saldo;
+		}else if(json.error !== undefined){
+			dictionary.KEY_ERROR = 2;
+			dictionary.KEY_SALDO = 0;
+		}else{
+			dictionary.KEY_ERROR = 3;
+			dictionary.KEY_SALDO = 0;
+		}
+		Pebble.sendAppMessage(dictionary,function(e) {
+			console.log('Balance info sent to Pebble successfully!');
+		}, function(e) {
+			console.log('Error sending balance info to Pebble!');
+		});
+	});
+}
+
 
 // Listen for when the watchface is opened
-Pebble.addEventListener('ready', 
-  function(e) {
-		var url = 'http://default-environment-mn23kbgwjm.elasticbeanstalk.com/api/index.php/saldo/82728479';
-		// Send request to OpenWeatherMap
-		xhrRequest(url, 'GET', function(responseText) {
-			var json = JSON.parse(responseText);
-      console.log('JSON is ' + json);
-    }      
-  );
-  }
-);
+Pebble.addEventListener('ready', function(e) {
+	var value = localStorage.getItem(KEY_BIP);
+	if(value === null){
+		var dictionary = {
+			'KEY_ERROR': 1,
+			'KEY_SALDO': 0
+		};
+		Pebble.sendAppMessage(dictionary,function(e) {
+			console.log('Balance info sent to Pebble successfully!');
+		}, function(e) {
+			console.log('Error sending balance info to Pebble!');
+		});
+	}else{
+		getSaldo(value);	
+	}
+});
 
 // Listen for when an AppMessage is received
-Pebble.addEventListener('appmessage',
+Pebble.addEventListener('appmessage', function(e) {
+	getSaldo();
+});
+
+Pebble.addEventListener('showConfiguration', function(e) {
+  // Show config page
+	var value = localStorage.getItem(KEY_BIP);
+	var url = 'http://default-environment-mn23kbgwjm.elasticbeanstalk.com/pebble/index.html';
+	var config = {
+		"bip":value
+	};
+	if(config.bip !== null){
+		url = url+"#"+JSON.stringify(value);
+	}
+  Pebble.openURL(url);
+});
+
+Pebble.addEventListener('webviewclosed',
   function(e) {
-    console.log('AppMessage received!');
-  }                     
+		console.log(e.response);
+    var config = JSON.parse(decodeURIComponent(e.response));
+		localStorage.setItem(KEY_BIP,config.saldo);
+		getSaldo(config.saldo);
+  }
 );

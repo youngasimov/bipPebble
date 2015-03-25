@@ -1,29 +1,38 @@
 {
-    "appKeys": {},
+    "appKeys": {
+        "KEY_ERROR": 1,
+        "KEY_SALDO": 0
+    },
     "capabilities": [
         "configurable"
     ],
     "companyName": "dreamer8.com",
-    "longName": "SaldoBip",
+    "longName": "Transantiago Saldo Bip",
     "projectType": "native",
     "resources": {
         "media": [
             {
-                "characterRegex": "[A-Za-z\u00f3\\.]",
-                "file": "fonts/Roboto-Light.ttf",
-                "name": "FONT_ROBOTO_CONDENSED_LIGHT_20",
+                "file": "images/icon.png",
+                "menuIcon": true,
+                "name": "IMAGE_ICON",
+                "type": "png"
+            },
+            {
+                "characterRegex": "[a-z0-9\\$\\.]",
+                "file": "fonts/RobotoCondensed-Bold.ttf",
+                "name": "FONT_ROBOTO_CONDENSED_BOLD_40",
                 "type": "font"
             },
             {
-                "characterRegex": "[a-z0-9\\$]",
-                "file": "fonts/RobotoCondensed-Bold.ttf",
-                "name": "FONT_ROBOTO_CONDENSED_BOLD_40",
+                "characterRegex": "[A-Za-z\u00f3\u00fa\\.]",
+                "file": "fonts/Roboto-Light.ttf",
+                "name": "FONT_ROBOTO_CONDENSED_LIGHT_20",
                 "type": "font"
             }
         ]
     },
     "sdkVersion": "2",
-    "shortName": "SaldoBip",
+    "shortName": "Saldo Bip",
     "uuid": "2cfe4632-d68e-405d-9687-98c60becf778",
     "versionCode": 1,
     "versionLabel": "1.0",

@@ -2,18 +2,58 @@
 	
 	
 #define KEY_SALDO 0
+#define KEY_ERROR 1
 	
 Window *window;
 TextLayer *header, *saldo, *footer;
 static GFont font, small_font;
+static char saldo_buffer[32];
 
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context){
-
+	// Read first item
+	Tuple *t = dict_read_first(iterator);
+	int error = 4;
+	char *s;
+	// For all items
+	while(t != NULL) {
+		// Which key was received?
+		switch(t->key) {
+			case KEY_SALDO:
+				s = t->value->cstring;
+			break;
+			case KEY_ERROR:
+				error = t->value->int32;
+			break;
+			default:
+			APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized!", (int)t->key);
+			break;
+		}
+		// Look for next item
+		t = dict_read_next(iterator);
+	}
+	if(error == 0){
+		snprintf(saldo_buffer, sizeof(saldo_buffer), "$%s", s);
+		text_layer_set_text(header, "Tu saldo es de");
+		text_layer_set_text(saldo, saldo_buffer);
+		text_layer_set_text(footer, "pesos");
+	}else if(error == 1){
+		text_layer_set_text(header, "Ingresa tu número Bip en la configuración");
+		text_layer_set_text(saldo, "");
+		text_layer_set_text(footer, "");
+	}else if(error > 1){
+		text_layer_set_text(header, "Servicio no disponible");
+		text_layer_set_text(saldo, "");
+		text_layer_set_text(footer, "intentalo denuevo");
+	}
+	vibes_short_pulse();
 }
 
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
 	APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
+	text_layer_set_text(header, "Revise conexión al teléfono");
+	text_layer_set_text(saldo, "");
+	text_layer_set_text(footer, "e intentalo denuevo");
 }
 
 static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
@@ -32,7 +72,7 @@ static void main_window_load(Window *window) {
 	window_set_background_color(window,GColorBlack);
 	
 	  // Create header TextLayer
-  header = text_layer_create(GRect(10, 30, 124, 40));
+  header = text_layer_create(GRect(10, 30, 124, 80));
   text_layer_set_background_color(header, GColorClear);
   text_layer_set_text_color(header, GColorWhite);
 	text_layer_set_font(header, small_font);
