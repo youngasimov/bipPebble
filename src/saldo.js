@@ -10,7 +10,7 @@ var xhrRequest = function (url, type, callback) {
 var KEY_BIP = 0;
 
 function getSaldo(bip){
-	var url = 'http://default-environment-mn23kbgwjm.elasticbeanstalk.com/api/index.php/saldo/';
+	var url = 'http://saldobip.dreamer8.com/api/index.php/saldo/';
 	// Send request to OpenWeatherMap
 	xhrRequest(url+bip, 'GET', function(responseText) {
 		var json = JSON.parse(responseText);
@@ -60,7 +60,7 @@ Pebble.addEventListener('appmessage', function(e) {
 Pebble.addEventListener('showConfiguration', function(e) {
   // Show config page
 	var value = localStorage.getItem(KEY_BIP);
-	var url = 'http://default-environment-mn23kbgwjm.elasticbeanstalk.com/pebble/index.html';
+	var url = 'http://saldobip.dreamer8.com/pebble/index.html';
 	var config = {
 		"bip":value
 	};
