@@ -54,19 +54,25 @@ Pebble.addEventListener('ready', function(e) {
 
 // Listen for when an AppMessage is received
 Pebble.addEventListener('appmessage', function(e) {
-	getSaldo();
+var value = localStorage.getItem(KEY_BIP);
+	if(value === null){
+		var dictionary = {
+			'KEY_ERROR': 1,
+			'KEY_SALDO': 0
+		};
+		Pebble.sendAppMessage(dictionary,function(e) {
+			console.log('Balance info sent to Pebble successfully!');
+		}, function(e) {
+			console.log('Error sending balance info to Pebble!');
+		});
+	}else{
+		getSaldo(value);	
+	}
 });
 
 Pebble.addEventListener('showConfiguration', function(e) {
   // Show config page
-	var value = localStorage.getItem(KEY_BIP);
 	var url = 'http://saldobip.dreamer8.com/pebble/index.html';
-	var config = {
-		"bip":value
-	};
-	if(config.bip !== null){
-		url = url+"#"+JSON.stringify(value);
-	}
   Pebble.openURL(url);
 });
 

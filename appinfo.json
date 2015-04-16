@@ -26,6 +26,12 @@
             {
                 "characterRegex": "[A-Za-z\u00f3\u00fa\\.]",
                 "file": "fonts/Roboto-Light.ttf",
+                "name": "FONT_ROBOTO_CONDENSED_LIGHT_14",
+                "type": "font"
+            },
+            {
+                "characterRegex": "[A-Za-z\u00f3\u00fa\\.]",
+                "file": "fonts/Roboto-Light.ttf",
                 "name": "FONT_ROBOTO_CONDENSED_LIGHT_20",
                 "type": "font"
             }
@@ -35,7 +41,7 @@
     "shortName": "Saldo Bip",
     "uuid": "2cfe4632-d68e-405d-9687-98c60becf778",
     "versionCode": 1,
-    "versionLabel": "1.0",
+    "versionLabel": "1.1",
     "watchapp": {
         "watchface": false
     }
