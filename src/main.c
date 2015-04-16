@@ -6,9 +6,50 @@
 	
 Window *window;
 TextLayer *header, *saldo, *footer, *updating;
+static PropertyAnimation *saldo_animation;
 static GFont font, small_font, smaller_font;
 static char saldo_buffer[32];
-static int tap_service_ready = 0;
+static int tap_service_ready = 0, animation_stage = 0;
+
+static void trigger_animation();
+
+void animation_started(Animation *animation, void *data) {
+	if(animation_stage == 1){
+		text_layer_set_text(saldo, saldo_buffer);
+	}
+}
+
+void animation_stopped(Animation *animation, bool finished, void *data) {
+	property_animation_destroy(saldo_animation);
+	if(animation_stage == 0){
+		layer_set_frame(text_layer_get_layer(saldo),GRect(144, 55, 144, 45));
+		animation_stage++;
+		trigger_animation();
+	}else{
+		animation_stage = 0;
+	}
+}
+
+static void trigger_animation(){
+	GRect from_frame, to_frame;
+	if(animation_stage == 0){
+		from_frame = layer_get_frame(text_layer_get_layer(saldo));
+  	to_frame = GRect(-144, 55, 144, 45);
+	}else if(animation_stage == 1){
+		from_frame = layer_get_frame(text_layer_get_layer(saldo));
+  	to_frame = GRect(0, 55, 144, 45);
+	}
+	
+	saldo_animation = property_animation_create_layer_frame(text_layer_get_layer(saldo), &from_frame, &to_frame);
+	
+	// You may set handlers to listen for the start and stop events
+  animation_set_handlers((Animation*) saldo_animation, (AnimationHandlers) {
+    .started = (AnimationStartedHandler) animation_started,
+    .stopped = (AnimationStoppedHandler) animation_stopped,
+  }, NULL);
+	
+	animation_schedule((Animation*) saldo_animation);
+}
 
 static void release_tap_service(void *data){
 	tap_service_ready = 1;
@@ -25,6 +66,7 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
   app_message_outbox_begin(&iter);
   dict_write_int(iter, key, &value, sizeof(int), true);
   app_message_outbox_send();
+	tap_service_ready = 0;
 }
 
 
@@ -50,31 +92,42 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 		// Look for next item
 		t = dict_read_next(iterator);
 	}
+	
 	if(error == 0){
 		snprintf(saldo_buffer, sizeof(saldo_buffer), "$%s", s);
 		text_layer_set_text(header, "Tu saldo es de");
-		text_layer_set_text(saldo, saldo_buffer);
 		text_layer_set_text(footer, "pesos");
 		text_layer_set_text(updating, "");
+		vibes_short_pulse();
+		trigger_animation();
+		
 	}else if(error == 1){
 		text_layer_set_text(updating, "Agrega tu código Bip");
 	}else if(error > 1){
 		text_layer_set_text(updating, "Servicio no disponible");
 	}
-	vibes_short_pulse();
 	tap_service_ready = 0;
 	app_timer_register(2000,release_tap_service,0);
 }
 
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
 	APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
-	text_layer_set_text(updating, "");
-	app_timer_register(2000,release_tap_service,0);
+	if(bluetooth_connection_service_peek()){
+		text_layer_set_text(updating, "");
+	}else{
+			text_layer_set_text(updating, "Desconectado");
+	}
+	tap_service_ready = 1;
 }
 
 static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
 	APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
-	text_layer_set_text(updating, "");
+	tap_service_ready = 1;
+	if(bluetooth_connection_service_peek()){
+		text_layer_set_text(updating, "");
+	}else{
+			text_layer_set_text(updating, "Desconectado");
+	}
 }
 
 static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
@@ -133,10 +186,13 @@ static void main_window_load(Window *window) {
 		text_layer_set_text(header, "Tu saldo es de");
 		text_layer_set_text(saldo, saldo_buffer);
 		text_layer_set_text(footer, "pesos");
-		text_layer_set_text(updating, "actualizando...");
 	}else{
 		text_layer_set_text(header, "...");
-		text_layer_set_text(updating, "actualizando...");
+	}
+	if(bluetooth_connection_service_peek()){
+		text_layer_set_text(updating, "Actualizando...");
+	}else{
+		text_layer_set_text(updating, "Desconectado");
 	}
 }
 
@@ -181,6 +237,7 @@ static void init() {
 }
 
 void deinit(void) {
+	animation_unschedule_all();
 	// Destroy the window
 	persist_write_string(KEY_SALDO, saldo_buffer);
 	window_destroy(window);
